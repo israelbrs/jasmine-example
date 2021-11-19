@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 var util = require('util'),
-    http = require('http'),
-    fs = require('fs'),
-    url = require('url'),
-    events = require('events');
+  http = require('http'),
+  fs = require('fs'),
+  url = require('url'),
+  events = require('events');
 
 var DEFAULT_PORT = 8000;
 
@@ -16,10 +16,7 @@ function main(argv) {
 }
 
 function escapeHtml(value) {
-  return value.toString().
-    replace('<', '&lt;').
-    replace('>', '&gt;').
-    replace('"', '&quot;');
+  return value.toString().replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;');
 }
 
 function createServlet(Class) {
@@ -38,24 +35,24 @@ function HttpServer(handlers) {
   this.server = http.createServer(this.handleRequest_.bind(this));
 }
 
-HttpServer.prototype.start = function(port) {
+HttpServer.prototype.start = function (port) {
   this.port = port;
   this.server.listen(port);
-  util.puts('Http Server running at http://localhost:' + port + '/');
+  //util.puts('Http Server running at http://localhost:' + port + '/');
 };
 
-HttpServer.prototype.parseUrl_ = function(urlString) {
+HttpServer.prototype.parseUrl_ = function (urlString) {
   var parsed = url.parse(urlString);
   parsed.pathname = url.resolve('/', parsed.pathname);
   return url.parse(url.format(parsed), true);
 };
 
-HttpServer.prototype.handleRequest_ = function(req, res) {
+HttpServer.prototype.handleRequest_ = function (req, res) {
   var logEntry = req.method + ' ' + req.url;
   if (req.headers['user-agent']) {
     logEntry += ' ' + req.headers['user-agent'];
   }
-  util.puts(logEntry);
+  //util.puts(logEntry);
   req.url = this.parseUrl_(req.url);
   var handler = this.handlers[req.method];
   if (!handler) {
@@ -69,7 +66,8 @@ HttpServer.prototype.handleRequest_ = function(req, res) {
 /**
  * Handles static content.
  */
-function StaticServlet() {}
+function StaticServlet() {
+}
 
 StaticServlet.MimeMap = {
   'txt': 'text/plain',
@@ -82,18 +80,18 @@ StaticServlet.MimeMap = {
   'jpeg': 'image/jpeg',
   'gif': 'image/gif',
   'png': 'image/png',
-  'svg': 'image/svg+xml'
+  'svg': 'image/svg+xml'
 };
 
-StaticServlet.prototype.handleRequest = function(req, res) {
+StaticServlet.prototype.handleRequest = function (req, res) {
   var self = this;
-  var path = ('./' + req.url.pathname).replace('//','/').replace(/%(..)/g, function(match, hex){
+  var path = ('./' + req.url.pathname).replace('//', '/').replace(/%(..)/g, function (match, hex) {
     return String.fromCharCode(parseInt(hex, 16));
   });
   var parts = path.split('/');
-  if (parts[parts.length-1].charAt(0) === '.')
+  if (parts[parts.length - 1].charAt(0) === '.')
     return self.sendForbidden_(req, res, path);
-  fs.stat(path, function(err, stat) {
+  fs.stat(path, function (err, stat) {
     if (err)
       return self.sendMissing_(req, res, path);
     if (stat.isDirectory())
@@ -102,22 +100,22 @@ StaticServlet.prototype.handleRequest = function(req, res) {
   });
 }
 
-StaticServlet.prototype.sendError_ = function(req, res, error) {
+StaticServlet.prototype.sendError_ = function (req, res, error) {
   res.writeHead(500, {
-      'Content-Type': 'text/html'
+    'Content-Type': 'text/html'
   });
   res.write('<!doctype html>\n');
   res.write('<title>Internal Server Error</title>\n');
   res.write('<h1>Internal Server Error</h1>');
   res.write('<pre>' + escapeHtml(util.inspect(error)) + '</pre>');
-  util.puts('500 Internal Server Error');
-  util.puts(util.inspect(error));
+  // util.puts('500 Internal Server Error');
+  // util.puts(util.inspect(error));
 };
 
-StaticServlet.prototype.sendMissing_ = function(req, res, path) {
+StaticServlet.prototype.sendMissing_ = function (req, res, path) {
   path = path.substring(1);
   res.writeHead(404, {
-      'Content-Type': 'text/html'
+    'Content-Type': 'text/html'
   });
   res.write('<!doctype html>\n');
   res.write('<title>404 Not Found</title>\n');
@@ -128,13 +126,13 @@ StaticServlet.prototype.sendMissing_ = function(req, res, path) {
     ' was not found on this server.</p>'
   );
   res.end();
-  util.puts('404 Not Found: ' + path);
+  //util.puts('404 Not Found: ' + path);
 };
 
-StaticServlet.prototype.sendForbidden_ = function(req, res, path) {
+StaticServlet.prototype.sendForbidden_ = function (req, res, path) {
   path = path.substring(1);
   res.writeHead(403, {
-      'Content-Type': 'text/html'
+    'Content-Type': 'text/html'
   });
   res.write('<!doctype html>\n');
   res.write('<title>403 Forbidden</title>\n');
@@ -144,13 +142,13 @@ StaticServlet.prototype.sendForbidden_ = function(req, res, path) {
     escapeHtml(path) + ' on this server.</p>'
   );
   res.end();
-  util.puts('403 Forbidden: ' + path);
+  //util.puts('403 Forbidden: ' + path);
 };
 
-StaticServlet.prototype.sendRedirect_ = function(req, res, redirectUrl) {
+StaticServlet.prototype.sendRedirect_ = function (req, res, redirectUrl) {
   res.writeHead(301, {
-      'Content-Type': 'text/html',
-      'Location': redirectUrl
+    'Content-Type': 'text/html',
+    'Location': redirectUrl
   });
   res.write('<!doctype html>\n');
   res.write('<title>301 Moved Permanently</title>\n');
@@ -161,37 +159,36 @@ StaticServlet.prototype.sendRedirect_ = function(req, res, redirectUrl) {
     '">here</a>.</p>'
   );
   res.end();
-  util.puts('301 Moved Permanently: ' + redirectUrl);
+  //util.puts('301 Moved Permanently: ' + redirectUrl);
 };
 
-StaticServlet.prototype.sendFile_ = function(req, res, path) {
+StaticServlet.prototype.sendFile_ = function (req, res, path) {
   var self = this;
   var file = fs.createReadStream(path);
   res.writeHead(200, {
-    'Content-Type': StaticServlet.
-      MimeMap[path.split('.').pop()] || 'text/plain'
+    'Content-Type': StaticServlet.MimeMap[path.split('.').pop()] || 'text/plain'
   });
   if (req.method === 'HEAD') {
     res.end();
   } else {
     file.on('data', res.write.bind(res));
-    file.on('close', function() {
+    file.on('close', function () {
       res.end();
     });
-    file.on('error', function(error) {
+    file.on('error', function (error) {
       self.sendError_(req, res, error);
     });
   }
 };
 
-StaticServlet.prototype.sendDirectory_ = function(req, res, path) {
+StaticServlet.prototype.sendDirectory_ = function (req, res, path) {
   var self = this;
   if (path.match(/[^\/]$/)) {
     req.url.pathname += '/';
     var redirectUrl = url.format(url.parse(url.format(req.url)));
     return self.sendRedirect_(req, res, redirectUrl);
   }
-  fs.readdir(path, function(err, files) {
+  fs.readdir(path, function (err, files) {
     if (err)
       return self.sendError_(req, res, error);
 
@@ -199,8 +196,8 @@ StaticServlet.prototype.sendDirectory_ = function(req, res, path) {
       return self.writeDirectoryIndex_(req, res, path, []);
 
     var remaining = files.length;
-    files.forEach(function(fileName, index) {
-      fs.stat(path + '/' + fileName, function(err, stat) {
+    files.forEach(function (fileName, index) {
+      fs.stat(path + '/' + fileName, function (err, stat) {
         if (err)
           return self.sendError_(req, res, err);
         if (stat.isDirectory()) {
@@ -213,7 +210,7 @@ StaticServlet.prototype.sendDirectory_ = function(req, res, path) {
   });
 };
 
-StaticServlet.prototype.writeDirectoryIndex_ = function(req, res, path, files) {
+StaticServlet.prototype.writeDirectoryIndex_ = function (req, res, path, files) {
   path = path.substring(1);
   res.writeHead(200, {
     'Content-Type': 'text/html'
@@ -229,7 +226,7 @@ StaticServlet.prototype.writeDirectoryIndex_ = function(req, res, path, files) {
   res.write('</style>\n');
   res.write('<h1>Directory: ' + escapeHtml(path) + '</h1>');
   res.write('<ol>');
-  files.forEach(function(fileName) {
+  files.forEach(function (fileName) {
     if (fileName.charAt(0) !== '.') {
       res.write('<li><a href="' +
         escapeHtml(fileName) + '">' +
